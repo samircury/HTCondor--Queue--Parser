@@ -1,0 +1,5 @@
+This module is not really finished yet. Need to :
+ * Improve the test under t/ to read a more generic file path for input.txt
+ * Rename the module name to HTCondor::Queue::Parser everywhere as discussed in the modules list
+ * Review the code (a lot of trash and useless things)
+ * Test it locally
