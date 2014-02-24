@@ -6,13 +6,13 @@ use warnings;
 use Test::More;
 use Data::Dumper;
 use File::Slurp;
-use Condor::QueueParser;
+use HTCondor::Queue::Parser;
 
-my @condor_q =  read_file( 'input.txt' ) ;
+my @condor_q =  read_file( $ENV{'PWD'}.'/t/input.txt' ) ;
 
 ok (scalar(@condor_q) > 100, 'Dummy input file is here');
 
-my $cparser = Condor::QueueParser->new();
+my $cparser = HTCondor::Queue::Parser->new();
 
 ok($cparser, 'Condor::QueueParser instance ok');
 
