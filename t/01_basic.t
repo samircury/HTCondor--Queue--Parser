@@ -8,7 +8,7 @@ use Data::Dumper;
 use File::Slurp;
 use HTCondor::Queue::Parser;
 
-my @condor_q =  read_file( $ENV{'PWD'}.'/t/input.txt' ) ;
+my @condor_q =  read_file( 't/input.txt' ) ;
 
 ok (scalar(@condor_q) > 100, 'Dummy input file is here');
 
@@ -27,6 +27,10 @@ foreach my $schedd (keys %schedds_map) {
 
 %schedds_map = $cparser->convert_to_compatible_xml(\%schedds_map);
 %schedds_map = $cparser->xml_to_hrefs(\%schedds_map);
+
+foreach my $schedd (keys %schedds_map) {
+        print @{$schedds_map{$schedd}{'xml'}};
+}
 
 foreach my $schedd (keys %schedds_map) {
 	ok($schedds_map{$schedd}{'href'}, "Got a perl href for $schedd");

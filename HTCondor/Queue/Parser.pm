@@ -1,27 +1,5 @@
 package HTCondor::Queue::Parser;
 
-=pod
-
-=head1 NAME
-
-HTCondor::Queue::Parser - Spits condor queue's jobs in many ways
-
-=head1 SYNOPSIS
-
-  my $object = Condor::QueueParser->new(
-      foo  => 'bar',
-      flag => 1,
-  );
-  
-  $object->dummy;
-
-=head1 DESCRIPTION
-
-The author was too lazy to write a description.
-
-=head1 METHODS
-
-=cut
 
 use 5.010;
 use strict;
@@ -31,14 +9,6 @@ use JSON::XS;
 use Data::Dumper;
 our $VERSION = '0.1';
 
-=pod
-
-=head2 new
-	
-	# This will only create the object then you can play with it later (see other methods)
-	my $cparser = Condor::QueueParser->new();
-	
-=cut
 
 sub new {
 	my $class = shift;
@@ -50,13 +20,6 @@ my %schedds_map;
 my $schedd;
 my @submitter_xml;
 
-=pod
-=head2 load_schedds_xml
-	# Here one should load the RAW output from $(condor_q -global -l -xml) it will spit a non-XML format and be converted later.
-	$cparser->load_schedds_xml(\@condor_q);
-	# What it does under the hood, is to get REAL XML for each schedd that the condor_q will present.
-	# $cparser->{'schedds_map'}  will be then loaded with a key per schedd, which contains the {'xml'} already
-=cut
 sub load_schedds_xml {
 	my $self = shift;
 	my $condor_q = shift;
@@ -82,17 +45,6 @@ sub load_schedds_xml {
 	}	
 	return %schedds_map;
 }
-=pod
-=head2 convert_to_compatible_xml
-Before this method runs, {xml} will contain the standard condor XML :
-
-	<classads><c>   <a n="MyType"><s>Job</s></a>  
-
-Afterwards, it will contain what I call "more compatible" XML :
-
-	<classads>  <c> <MyType> Job </MyType> <TargetType> Machine </TargetType> 
-
-=cut
 sub convert_to_compatible_xml {
 	my $self = shift;
 	my $schedds_map_href = shift;
@@ -126,39 +78,19 @@ sub convert_to_compatible_xml {
 	return %schedds_map;
 }
 
-=pod
-=head2 xml_to_hrefs
-
-This one should get the content of $self->{'schedds_map'}{$schedd}{'xml'} and populate $self->{'schedds_map'}{$schedd}{'href'} 
-with a Perl equivalent multilevel hash, which will be the native format to Perl information, and you can use it in your application
-
-=cut
-
 sub xml_to_hrefs{
 	my $self = shift;
 	my $schedds_map_href = shift;
 	my %schedds_map = %{$schedds_map_href};
 	
 	foreach my $schedd (keys %schedds_map) {
-		die ('provide an xml in %schedds_map{$schedd}{xml} ') if not defined $schedds_map{$schedd}{'xml'} ;
+		die ('Provide an xml in %schedds_map{$schedd}{xml} ') if not defined $schedds_map{$schedd}{'xml'} ;
 		my $xml = "@{$schedds_map{$schedd}{'xml'}}";
 		my $job_data = XMLin($xml);
 		$schedds_map{$schedd}{'href'} = $job_data;	
 	}
 	return %schedds_map;
 }
-	
-	
-=pod
-=head2 schedd_json
-Maybe the most useful way to use it is :
-
-	foreach my $schedd (keys %{$cparser->{'schedds_map'}}) {
-		my $json = $cparser->schedd_json($schedd);
-		# do something with $json;
-	}
-
-=cut
 
 sub schedd_json {
 	my $self = shift;
@@ -176,7 +108,105 @@ sub schedd_json {
 
 1;
 
+
+__END__
+
 =pod
+
+=head1 NAME
+
+HTCondor::Queue::Parser 
+
+=head1 SYNOPSIS
+
+  my $cparser = HTCondor::Queue::Parser->new();
+  
+  my @condor_q =  read_file( 't/input.txt' ) ; # Text file with condor_q -global or condor_q output
+  
+  my %schedds_map = $cparser->load_schedds_xml(\@condor_q);
+  
+  foreach my $schedd (keys %schedds_map) {
+        # This allows you to have simplified XMLs per schedd, that won't break XML parsers.
+        # Default condor_q -global -l -xml does not outputs an 
+        my $simple_xml = $schedds_map{$schedd}{'xml'};
+        
+  }
+
+  
+=head1 DESCRIPTION
+
+Outputs condor queue's jobs different ways : Simpler XML per schedds, JSON
+
+HTCondor's default output looks like :
+
+  <c>
+     <a n="MyType"><s>Job</s></a>
+     <a n="TargetType"><s>Machine</s></a>
+     <a n="PeriodicRemove"><b v="f"/></a>
+     <a n="CommittedSlotTime"><i>0</i></a>
+     <a n="Out"><s>_condor_stdout</s></a>
+  </c> # Fake line -- truncated for the example
+   
+Converted, simpler XML from this module looks like more :
+
+  <?xml version="1.0"?>
+  <classads>
+    <c>
+      <MyType> Job </MyType>
+      <TargetType> Machine </TargetType>
+      <ClusterId> 790960 </ClusterId>
+      <QDate> 1312487190 </QDate>
+      <CompletionDate> 0 </CompletionDate>
+      <Owner> uscmsPool1639 </Owner>
+      <LocalUserCpu> 0.000000000000000E+00 </LocalUserCpu>
+      <LocalSysCpu> 0.000000000000000E+00 </LocalSysCpu>
+      <ExitStatus> 0 </ExitStatus>
+      <NumCkpts_RAW> 0 </NumCkpts_RAW>
+      <NumCkpts> 0 </NumCkpts>
+      <NumRestarts> 0 </NumRestarts>
+      <NumSystemHolds> 0 </NumSystemHolds>
+      <CommittedTime> 0 </CommittedTime>
+    </c> # Fake line -- truncated for the example
+  </classads> # Fake line -- truncated for example
+
+
+=head1 METHODS
+
+=head2 new
+	
+	# This will only create the object then you can play with it later (see other methods)
+	my $cparser = Condor::QueueParser->new();
+	
+
+=head2 load_schedds_xml
+
+	# Here one should load the RAW output from $(condor_q -global -l -xml) it will spit a non-XML format and be converted later.
+	$cparser->load_schedds_xml(\@condor_q);
+	# What it does under the hood, is to get REAL XML for each schedd that the condor_q will present.
+	# $cparser->{'schedds_map'}  will be then loaded with a key per schedd, which contains the {'xml'} already
+
+=head2 convert_to_compatible_xml
+Before this method runs, {xml} will contain the standard condor XML :
+
+	<classads><c>   <a n="MyType"><s>Job</s></a>  
+
+Afterwards, it will contain what I call "more compatible" XML :
+
+	<classads>  <c> <MyType> Job </MyType> <TargetType> Machine </TargetType> 
+
+=head2 xml_to_hrefs
+
+This one should get the content of $self->{'schedds_map'}{$schedd}{'xml'} and populate $self->{'schedds_map'}{$schedd}{'href'} 
+with a Perl equivalent multilevel hash, which will be the native format to Perl information, and you can use it in your application
+
+=head2 schedd_json
+
+Maybe the most useful way to use it is :
+
+	foreach my $schedd (keys %{$cparser->{'schedds_map'}}) {
+		my $json = $cparser->schedd_json($schedd);
+		# do something with $json;
+	}
 
 =head1 SUPPORT
 
