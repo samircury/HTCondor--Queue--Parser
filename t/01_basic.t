@@ -29,10 +29,6 @@ foreach my $schedd (keys %schedds_map) {
 %schedds_map = $cparser->xml_to_hrefs(\%schedds_map);
 
 foreach my $schedd (keys %schedds_map) {
-        print @{$schedds_map{$schedd}{'xml'}};
-}
-
-foreach my $schedd (keys %schedds_map) {
 	ok($schedds_map{$schedd}{'href'}, "Got a perl href for $schedd");
 }
 
