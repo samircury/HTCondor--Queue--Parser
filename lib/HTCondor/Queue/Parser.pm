@@ -9,6 +9,7 @@ use JSON::XS;
 use Data::Dumper;
 our $VERSION = '0.1';
 
+# ABSTRACT: parses multible schedds condor_q output, so you don't have to. Serves output in many formats. 
 
 sub new {
 	my $class = shift;
