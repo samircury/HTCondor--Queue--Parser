@@ -4,7 +4,6 @@ use 5.010;
 use strict;
 use warnings;
 use Test::More;
-use Data::Dumper;
 use File::Slurp;
 use HTCondor::Queue::Parser;
 
